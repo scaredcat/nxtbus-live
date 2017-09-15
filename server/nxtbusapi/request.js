@@ -31,10 +31,10 @@ const productionTimetableRequest = () => {
   const tomorrow = moment(date).add(1, 'days').format();
 
   const ptrequest = {
-    RequestTimestamp: date,
+    RequestTimestamp: now,
     RequestorRef: SECRET,
     ProductionTimetableRequest: {
-      RequestTimestamp: date,
+      RequestTimestamp: now,
       ValidityPeriod: {
         StartTime: date,
         EndTime: tomorrow

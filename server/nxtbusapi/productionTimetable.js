@@ -19,7 +19,7 @@ const loadProductionTimetable = async () => {
 
   if (exists) {
     const timetable = fs.readFileSync(TIMETABLE);
-    return timetable;
+    return JSON.parse(timetable);
   } else {
     // productionTimetableRequest
     console.log('Fetching todays timetable...');

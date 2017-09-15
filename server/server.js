@@ -7,7 +7,10 @@ const csv = require('csvtojson');
 const moment = require('moment');
 
 const {stopMonitoringRequest, productionTimetableRequest} = require('./nxtbusapi/request');
+const {loadProductionTimetable} = require('./nxtbusapi/productionTimetable');
 const SECRET = process.env.NXTBUS_API_KEY;
+
+let todaysTimetable = {};
 
 const app = express();
 
@@ -47,41 +50,14 @@ const parser = new Parser({
 //   });
 // }).catch(e => console.error(e));
 
+loadProductionTimetable().then(value => {
+  todaysTimetable = value;
+});
 
-// productionTimetableRequest
-// axios({
-//     method: 'post',
-//     url: `http://siri.nxtbus.act.gov.au:11000/${SECRET}/pt/service.xml`,
-//     data: productionTimetableRequest(),
-//   headers: {
-//     'Content-Type': 'text/xml'
-//   }
-// }).then(response => {
-//   parser.parseString(response.data, (err, result) => {
-//     if(err) {
-//       console.error(err);
-//     }
-//     console.log(result.Siri);
-//   });
-// }).catch(e => console.error(e));
 
 
 app.get('/timetable', (req, res) => {
-  axios({
-      method: 'post',
-      url: `http://siri.nxtbus.act.gov.au:11000/${SECRET}/pt/service.xml`,
-      data: productionTimetableRequest(),
-    headers: {
-      'Content-Type': 'text/xml'
-    }
-  }).then(response => {
-    parser.parseString(response.data, (err, result) => {
-      if(err) {
-        return res.status(404).send(err);
-      }
-      res.send(result.Siri);
-    });
-  }).catch(e => res.status(404).send(e));
+  res.send(todaysTimetable);
 });
 
 app.listen(process.env.PORT, () => {

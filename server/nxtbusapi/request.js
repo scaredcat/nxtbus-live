@@ -26,7 +26,8 @@ const stopMonitoringRequest = stop => {
 }
 
 const productionTimetableRequest = () => {
-  const date = moment().utcOffset(10).format();
+  const now = moment().utcOffset(10).format();
+  const date = moment(now).utcOffset(10).seconds(0).minutes(0).hours(5).format();
   const tomorrow = moment(date).add(1, 'days').format();
 
   const ptrequest = {

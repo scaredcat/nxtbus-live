@@ -5,7 +5,7 @@ const fs = require('fs');
 const moment = require('moment');
 const csv = require('csvtojson');
 
-const {stopMonitoringRequest} = require('./nxtbusapi/request');
+const {stopMonitoringRequest, sendRequest, buildXml} = require('./nxtbusapi/request');
 const {loadProductionTimetable, refreshProductionTimetable} = require('./nxtbusapi/productionTimetable');
 const SECRET = process.env.NXTBUS_API_KEY;
 
@@ -63,6 +63,7 @@ const reloadTimetable = (delay) => {
 };
 
 loadProductionTimetable().then(value => {
+  console.log('Initial timetable loaded.');
   todaysTimetable = value;
 
   const now = moment();
@@ -71,6 +72,26 @@ loadProductionTimetable().then(value => {
   reloadTimetable(diff);
 });
 
+
+const now = moment().format();
+const tomorrow = moment(now).add(1, 'days').format();
+const vmsubscription = buildXml('SubscriptionRequest', {
+  RequestTimestamp: now,
+  RequestorRef: SECRET,
+  VehicleMonitoringSubscriptionRequest: {
+    SubscriptionIdentifier: '4',
+    InitialTerminationTime: tomorrow,
+    VehicleMonitoringRequest: {
+      RequestTimestamp: now,
+      VehicleMonitoringRef: 'VM_ACT_0950'
+    },
+    UpdateInterval: 'P0Y0M0DT0H0M1.00S'
+  }
+});
+
+console.log(vmsubscription);
+
+sendRequest('/vm/subscription.xml', vmsubscription);
 
 
 app.get('/timetable', (req, res) => {

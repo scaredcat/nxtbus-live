@@ -5,10 +5,10 @@ const builder = new Builder();
 
 const SECRET = process.env.NXTBUS_API_KEY;
 
-const buildXml = (data) => {
+const buildXml = (key, data) => {
   return builder.buildObject({
     Siri: {
-      ServiceRequest: data,
+      [key]: data,
       $: {
         'xmlns': 'http://www.siri.org.uk/siri'
       }
@@ -21,42 +21,11 @@ const parser = new Parser({
   explicitArray: false
 });
 
-const stopMonitoringRequest = stop => {
-  const date = moment().utcOffset(10).format();
-  const smrequest = {
-    RequestTimestamp: date,
-    RequestorRef: SECRET,
-    StopMonitoringRequest: {
-      RequestTimestamp: date,
-      MonitoringRef: stop
-    }
-  };
-
-  return buildXml(smrequest);
-}
-
-const productionTimetableServiceRequest = () => {
+const sendRequest = (endPoint, postData) => {
   return new Promise((resolve, reject) => {
-    const now = moment().utcOffset(10).format();
-    const date = moment(now).utcOffset(10).seconds(0).minutes(0).hours(5).format();
-    const tomorrow = moment(date).add(1, 'days').add(1, 'hours').format();
-
-    const ptrequest = {
-      RequestTimestamp: now,
-      RequestorRef: SECRET,
-      ProductionTimetableRequest: {
-        RequestTimestamp: now,
-        ValidityPeriod: {
-          StartTime: date,
-          EndTime: tomorrow
-        }
-      }
-    };
-    const postData = buildXml(ptrequest);
-
     const req = http.request({
       hostname: 'siri.nxtbus.act.gov.au',
-      path: `/${SECRET}/pt/service.xml`,
+      path: `/${SECRET}/${endPoint}`,
       port: 11000,
       method: 'POST',
       headers: {
@@ -88,4 +57,39 @@ const productionTimetableServiceRequest = () => {
   });
 }
 
-module.exports = {stopMonitoringRequest, productionTimetableServiceRequest};
+const stopMonitoringRequest = stop => {
+  const date = moment().utcOffset(10).format();
+  const smrequest = {
+    RequestTimestamp: date,
+    RequestorRef: SECRET,
+    StopMonitoringRequest: {
+      RequestTimestamp: date,
+      MonitoringRef: stop
+    }
+  };
+
+  return buildXml('ServiceRequest', smrequest);
+}
+
+const productionTimetableServiceRequest = () => {
+  const now = moment().utcOffset(10).format();
+  const date = moment(now).utcOffset(10).seconds(0).minutes(0).hours(5).format();
+  const tomorrow = moment(date).add(1, 'days').add(1, 'hours').format();
+
+  const ptrequest = {
+    RequestTimestamp: now,
+    RequestorRef: SECRET,
+    ProductionTimetableRequest: {
+      RequestTimestamp: now,
+      ValidityPeriod: {
+        StartTime: date,
+        EndTime: tomorrow
+      }
+    }
+  };
+  const postData = buildXml('ServiceRequest', ptrequest);
+
+  return sendRequest('pt/service.xml', postData);
+}
+
+module.exports = {stopMonitoringRequest, productionTimetableServiceRequest, sendRequest, buildXml};

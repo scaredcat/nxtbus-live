@@ -12,6 +12,7 @@ const parser = new Parser({
 });
 
 const refreshProductionTimetable = async () => {
+  console.log('refreshing production timetable');
   try {
     const data = await productionTimetableServiceRequest();
     fs.writeFileSync(TIMETABLE, JSON.stringify(data.Siri));
@@ -23,6 +24,7 @@ const refreshProductionTimetable = async () => {
 }
 
 const loadProductionTimetable = async () => {
+  console.log('loading initial timetable');
   const exists = fs.existsSync(TIMETABLE);
   if (exists) {
     const timetable = fs.readFileSync(TIMETABLE);

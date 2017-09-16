@@ -1,8 +1,25 @@
 const {Parser, Builder} = require('xml2js');
 const moment = require('moment');
+const http = require('http');
 const builder = new Builder();
 
 const SECRET = process.env.NXTBUS_API_KEY;
+
+const buildXml = (data) => {
+  return builder.buildObject({
+    Siri: {
+      ServiceRequest: data,
+      $: {
+        'xmlns': 'http://www.siri.org.uk/siri'
+      }
+    }
+  });
+}
+
+const parser = new Parser({
+  ignoreAttrs: true,
+  explicitArray: false
+});
 
 const stopMonitoringRequest = stop => {
   const date = moment().utcOffset(10).format();
@@ -15,41 +32,60 @@ const stopMonitoringRequest = stop => {
     }
   };
 
-  return builder.buildObject({
-    Siri: {
-      ServiceRequest: smrequest,
-      $: {
-        'xmlns': 'http://www.siri.org.uk/siri'
-      }
-    }
-  });
+  return buildXml(smrequest);
 }
 
-const productionTimetableRequest = () => {
-  const now = moment().utcOffset(10).format();
-  const date = moment(now).utcOffset(10).seconds(0).minutes(0).hours(5).format();
-  const tomorrow = moment(date).add(1, 'days').format();
+const productionTimetableServiceRequest = () => {
+  return new Promise((resolve, reject) => {
+    const now = moment().utcOffset(10).format();
+    const date = moment(now).utcOffset(10).seconds(0).minutes(0).hours(5).format();
+    const tomorrow = moment(date).add(1, 'days').add(1, 'hours').format();
 
-  const ptrequest = {
-    RequestTimestamp: now,
-    RequestorRef: SECRET,
-    ProductionTimetableRequest: {
+    const ptrequest = {
       RequestTimestamp: now,
-      ValidityPeriod: {
-        StartTime: date,
-        EndTime: tomorrow
+      RequestorRef: SECRET,
+      ProductionTimetableRequest: {
+        RequestTimestamp: now,
+        ValidityPeriod: {
+          StartTime: date,
+          EndTime: tomorrow
+        }
       }
-    }
-  };
+    };
+    const postData = buildXml(ptrequest);
 
-  return builder.buildObject({
-    Siri: {
-      ServiceRequest: ptrequest,
-      $: {
-        'xmlns': 'http://www.siri.org.uk/siri'
+    const req = http.request({
+      hostname: 'siri.nxtbus.act.gov.au',
+      path: `/${SECRET}/pt/service.xml`,
+      port: 11000,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/xml',
+        'Content-Length': Buffer.byteLength(postData)
       }
-    }
+    }, (res) => {
+      res.setEncoding('utf8');
+      let data = '';
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        parser.parseString(data, (err, result) => {
+            if(err) {
+            return reject(err);
+            }
+            resolve(result);
+          });
+      });
+    });
+
+    req.on('error', (e) => {
+      reject(e);
+    });
+    req.write(postData);
+    req.end();
   });
 }
 
-module.exports = {stopMonitoringRequest, productionTimetableRequest};
+module.exports = {stopMonitoringRequest, productionTimetableServiceRequest};

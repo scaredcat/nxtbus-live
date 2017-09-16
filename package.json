@@ -13,7 +13,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.16.2",
     "csvtojson": "^1.1.7",
     "express": "^4.15.4",
     "moment": "^2.18.1",

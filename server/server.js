@@ -89,9 +89,24 @@ const vmsubscription = buildXml('SubscriptionRequest', {
   }
 });
 
-console.log(vmsubscription);
+const terminaterequest = buildXml('TerminateSubscriptionRequest', {
+  RequestTimestamp: now,
+  RequestorRef: SECRET,
+  All: null
+});
 
-sendRequest('/vm/subscription.xml', vmsubscription);
+// console.log(terminaterequest);
+sendRequest('vm/subscription.xml', terminaterequest)
+  .then(value => {
+    console.log('cancel subscription success', value);
+  }).catch(e => console.log('subscription cancel success', e));
+
+// console.log(vmsubscription);
+
+sendRequest('vm/subscription.xml', vmsubscription)
+  .then(value => {
+    console.log('subscription success', value);
+  }).catch(e => console.log('subscription failure', e));
 
 
 app.get('/timetable', (req, res) => {

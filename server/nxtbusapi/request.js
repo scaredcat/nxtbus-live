@@ -1,3 +1,4 @@
+require('../config/config');
 const {Parser, Builder} = require('xml2js');
 const moment = require('moment');
 const http = require('http');

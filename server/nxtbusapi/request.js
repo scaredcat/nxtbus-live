@@ -65,11 +65,13 @@ const stopMonitoringRequest = stop => {
     RequestorRef: SECRET,
     StopMonitoringRequest: {
       RequestTimestamp: date,
-      MonitoringRef: stop
+      MonitoringRef: stop,
+      MaximumTextLength: '300'
     }
   };
 
-  return buildXml('ServiceRequest', smrequest);
+  const postData = buildXml('ServiceRequest', smrequest);
+  return sendRequest('sm/service.xml', postData);
 }
 
 const productionTimetableServiceRequest = () => {
@@ -88,8 +90,8 @@ const productionTimetableServiceRequest = () => {
       }
     }
   };
-  const postData = buildXml('ServiceRequest', ptrequest);
 
+  const postData = buildXml('ServiceRequest', ptrequest);
   return sendRequest('pt/service.xml', postData);
 }
 

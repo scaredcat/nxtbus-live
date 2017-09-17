@@ -1,7 +1,5 @@
 require('./config/config');
 const express = require('express');
-const {Parser, Builder} = require('xml2js');
-const fs = require('fs');
 const moment = require('moment');
 const csv = require('csvtojson');
 
@@ -13,100 +11,73 @@ let todaysTimetable = {};
 
 const app = express();
 
-
+// load list of bus stops from csv file
 const busstops = [];
-csv({
-  delimiter: '\t'
-}).fromFile(__dirname + '/resources/AllStops.csv')
+csv({delimiter: '\t'})
+  .fromFile(__dirname + '/resources/AllStops.csv')
   .on('csv', jsonObj => {
     busstops.push(jsonObj);
-  })
-  .on('done', error => {
-    // console.log(busstops[0]);
-  })
+  }).on('done', error => {
+    if (error) {
+      console.log('Error loading busstops csv', error);
+    }
+  });
 
-// console.log(xml);
+const reloadTimetable = (value) => {
+  todaysTimetable = value;
+  const now = moment();
+  const expire = moment(todaysTimetable.ServiceDelivery.ProductionTimetableDelivery.ValidUntil);
+  const diff = expire - now + 6000;
 
-const parser = new Parser({
-  ignoreAttrs: true,
-  explicitArray: false
-});
-
-// stopMonitoringRequest
-// axios({
-//     method: 'post',
-//     url: `http://siri.nxtbus.act.gov.au:11000/${SECRET}/sm/service.xml`,
-//     data: stopMonitoringRequest('1723'),
-//   headers: {
-//     'Content-Type': 'text/xml'
-//   }
-// }).then(response => {
-//   parser.parseString(response.data, (err, result) => {
-//     if(err) {
-//       console.error(err);
-//     }
-//     console.log(JSON.stringify(result.Siri, undefined, 2));
-//   });
-// }).catch(e => console.error(e));
-
-const reloadTimetable = (delay) => {
   setTimeout(() => {
     console.log(moment(), 'reloading timetable...');
     refreshProductionTimetable().then(value => {
-      todaysTimetable = value;
-      const now = moment();
-      const expire = moment(todaysTimetable.ServiceDelivery.ProductionTimetableDelivery.ValidUntil);
-      const diff = expire - now + 6000;
-      reloadTimetable(diff);
+      reloadTimetable(value);
     });
   }, delay)
 };
 
+// load the production timetable from servers
 loadProductionTimetable().then(value => {
   console.log('Initial timetable loaded.');
-  todaysTimetable = value;
-
-  const now = moment();
-  const expire = moment(todaysTimetable.ServiceDelivery.ProductionTimetableDelivery.ValidUntil);
-  const diff = expire - now + 6000;
-  reloadTimetable(diff);
+  reloadTimetable(value);
 });
 
 
-const now = moment().format();
-const tomorrow = moment(now).add(1, 'days').format();
-const vmsubscription = buildXml('SubscriptionRequest', {
-  RequestTimestamp: now,
-  RequestorRef: SECRET,
-  VehicleMonitoringSubscriptionRequest: {
-    SubscriptionIdentifier: '4',
-    InitialTerminationTime: tomorrow,
-    VehicleMonitoringRequest: {
-      RequestTimestamp: now,
-      VehicleMonitoringRef: 'VM_ACT_0950'
-    },
-    UpdateInterval: 'P0Y0M0DT0H0M1.00S'
-  }
-});
+// const now = moment().format();
+// const tomorrow = moment(now).add(1, 'days').format();
+// const vmsubscription = buildXml('SubscriptionRequest', {
+//   RequestTimestamp: now,
+//   RequestorRef: SECRET,
+//   VehicleMonitoringSubscriptionRequest: {
+//     SubscriptionIdentifier: '4',
+//     InitialTerminationTime: tomorrow,
+//     VehicleMonitoringRequest: {
+//       RequestTimestamp: now,
+//       VehicleMonitoringRef: 'VM_ACT_0950'
+//     },
+//     UpdateInterval: 'P0Y0M0DT0H0M1.00S'
+//   }
+// });
+//
+// const terminaterequest = buildXml('TerminateSubscriptionRequest', {
+//   RequestTimestamp: now,
+//   RequestorRef: SECRET,
+//   All: null
+// });
 
-const terminaterequest = buildXml('TerminateSubscriptionRequest', {
-  RequestTimestamp: now,
-  RequestorRef: SECRET,
-  All: null
-});
-
-// console.log(terminaterequest);
-sendRequest('vm/subscription.xml', terminaterequest)
-  .then(value => {
-    console.log('cancel subscription success', value);
-  }).catch(e => console.log('subscription cancel success', e));
-
-// console.log(vmsubscription);
-
-sendRequest('vm/subscription.xml', vmsubscription)
-  .then(value => {
-    console.log('subscription success', value);
-  }).catch(e => console.log('subscription failure', e));
+// // console.log(terminaterequest);
+// sendRequest('vm/subscription.xml', terminaterequest)
+//   .then(value => {
+//     console.log('cancel subscription success', value);
+//   }).catch(e => console.log('subscription cancel success', e));
+//
+// // console.log(vmsubscription);
+//
+// sendRequest('vm/subscription.xml', vmsubscription)
+//   .then(value => {
+//     console.log('subscription success', value);
+//   }).catch(e => console.log('subscription failure', e));
 
 
 app.get('/timetable', (req, res) => {
@@ -129,6 +100,18 @@ app.get('/busses/:route', (req, res) => {
   }
   const bus = todaysTimetable.ServiceDelivery.ProductionTimetableDelivery.DatedTimetableVersionFrame.filter(timetable => req.params.route === timetable.PublishedLineName);
   return res.send(bus);
+});
+
+app.get('/stops', (req, res) => {
+  res.send(busstops);
+});
+
+app.get('/stops/:stop', (req, res) => {
+  stopMonitoringRequest(req.params.stop).then(value => {
+    res.send(value);
+  }).catch(e => {
+    res.status(400).send(e);
+  });
 });
 
 app.listen(process.env.PORT, () => {

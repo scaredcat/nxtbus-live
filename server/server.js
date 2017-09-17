@@ -34,7 +34,7 @@ const reloadTimetable = (value) => {
     refreshProductionTimetable().then(value => {
       reloadTimetable(value);
     });
-  }, delay)
+  }, diff)
 };
 
 // load the production timetable from servers

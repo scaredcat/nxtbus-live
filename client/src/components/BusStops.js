@@ -12,8 +12,7 @@ export default class BusStops extends Component {
   }
 
   componentWillMount() {
-    console.log('fetching some values');
-    axios.get('/stop')
+    axios.get('/api/stop')
       .then(value => {
         this.setState({stops: value.data});
       })
@@ -24,7 +23,7 @@ export default class BusStops extends Component {
     return this.state.stops.filter(value => value.some(item => item.toLowerCase().match(this.state.search.toLowerCase())))
       .slice(0,35).map((value, index) => {
       return (
-        <tr key={index} onClick={() => console.log('Stop:', value[0])}>
+        <tr key={index} onClick={() => this.props.history.push(`/stop/${value[0]}`)}>
           <td>{value[0]}</td>
           <td>{value[1]}</td>
           <td>{value[2]}</td>

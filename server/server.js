@@ -49,11 +49,11 @@ loadProductionTimetable().then(value => {
 // https://daveceddia.com/create-react-app-express-production/
 app.use(express.static(path.join(__dirname, '..', 'client/build')));
 
-app.get('/timetable', (req, res) => {
+app.get('/api/timetable', (req, res) => {
   res.send(todaysTimetable);
 });
 
-app.get('/bus', (req, res) => {
+app.get('/api/bus', (req, res) => {
   if (Object.keys(todaysTimetable).length === 0) {
     return res.send({});
   }
@@ -63,7 +63,7 @@ app.get('/bus', (req, res) => {
   return res.send(busses);
 });
 
-app.get('/bus/:route', (req, res) => {
+app.get('/api/bus/:route', (req, res) => {
   if (Object.keys(todaysTimetable).length === 0) {
     return res.send({});
   }
@@ -71,13 +71,13 @@ app.get('/bus/:route', (req, res) => {
   return res.send(bus);
 });
 
-app.get('/stop', (req, res) => {
+app.get('/api/stop', (req, res) => {
   res.send(busstops);
 });
 
-app.get('/stop/:stop', (req, res) => {
+app.get('/api/stop/:stop', (req, res) => {
   stopMonitoringRequest(req.params.stop).then(value => {
-    res.send(value);
+    res.send(value.Siri.ServiceDelivery);
   }).catch(e => {
     res.status(400).send(e);
   });
@@ -85,9 +85,9 @@ app.get('/stop/:stop', (req, res) => {
 
 // The "catchall" handler: for any request that doesn't
 // match one above, send back React's index.html file.
-// app.get('*', (req, res) => {
-//   res.sendFile(path.join(__dirname, '..', 'client/build/index.html'));
-// });
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'client/build/index.html'));
+});
 
 
 app.listen(process.env.PORT, () => {

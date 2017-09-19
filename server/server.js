@@ -44,47 +44,11 @@ loadProductionTimetable().then(value => {
 });
 
 
-// const now = moment().format();
-// const tomorrow = moment(now).add(1, 'days').format();
-// const vmsubscription = buildXml('SubscriptionRequest', {
-//   RequestTimestamp: now,
-//   RequestorRef: SECRET,
-//   VehicleMonitoringSubscriptionRequest: {
-//     SubscriptionIdentifier: '4',
-//     InitialTerminationTime: tomorrow,
-//     VehicleMonitoringRequest: {
-//       RequestTimestamp: now,
-//       VehicleMonitoringRef: 'VM_ACT_0950'
-//     },
-//     UpdateInterval: 'P0Y0M0DT0H0M1.00S'
-//   }
-// });
-//
-// const terminaterequest = buildXml('TerminateSubscriptionRequest', {
-//   RequestTimestamp: now,
-//   RequestorRef: SECRET,
-//   All: null
-// });
-
-// // console.log(terminaterequest);
-// sendRequest('vm/subscription.xml', terminaterequest)
-//   .then(value => {
-//     console.log('cancel subscription success', value);
-//   }).catch(e => console.log('subscription cancel success', e));
-//
-// // console.log(vmsubscription);
-//
-// sendRequest('vm/subscription.xml', vmsubscription)
-//   .then(value => {
-//     console.log('subscription success', value);
-//   }).catch(e => console.log('subscription failure', e));
-
-
 app.get('/timetable', (req, res) => {
   res.send(todaysTimetable);
 });
 
-app.get('/busses', (req, res) => {
+app.get('/bus', (req, res) => {
   if (Object.keys(todaysTimetable).length === 0) {
     return res.send({});
   }
@@ -94,7 +58,7 @@ app.get('/busses', (req, res) => {
   return res.send(busses);
 });
 
-app.get('/busses/:route', (req, res) => {
+app.get('/bus/:route', (req, res) => {
   if (Object.keys(todaysTimetable).length === 0) {
     return res.send({});
   }
@@ -102,11 +66,11 @@ app.get('/busses/:route', (req, res) => {
   return res.send(bus);
 });
 
-app.get('/stops', (req, res) => {
+app.get('/stop', (req, res) => {
   res.send(busstops);
 });
 
-app.get('/stops/:stop', (req, res) => {
+app.get('/stop/:stop', (req, res) => {
   stopMonitoringRequest(req.params.stop).then(value => {
     res.send(value);
   }).catch(e => {

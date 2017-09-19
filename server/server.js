@@ -2,6 +2,7 @@ require('./config/config');
 const express = require('express');
 const moment = require('moment');
 const csv = require('csvtojson');
+const path = require('path');
 
 const {stopMonitoringRequest, sendRequest, buildXml} = require('./nxtbusapi/request');
 const {loadProductionTimetable, refreshProductionTimetable} = require('./nxtbusapi/productionTimetable');
@@ -44,6 +45,10 @@ loadProductionTimetable().then(value => {
 });
 
 
+// Serve static files from the React app
+// https://daveceddia.com/create-react-app-express-production/
+app.use(express.static(path.join(__dirname, '..', 'client/build')));
+
 app.get('/timetable', (req, res) => {
   res.send(todaysTimetable);
 });
@@ -77,6 +82,13 @@ app.get('/stop/:stop', (req, res) => {
     res.status(400).send(e);
   });
 });
+
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, '..', 'client/build/index.html'));
+// });
+
 
 app.listen(process.env.PORT, () => {
   console.log('App listening on port 3000');

@@ -35,9 +35,9 @@ export default class BusStop extends Component {
       return <div>No busses recoreded within the next 30 minutes</div>;
     }
 
-    const status = stop.StopMonitoringDelivery.MonitoredStopVisit.map(({MonitoredVehicleJourney, ValidUntilTime}) => ({
+    const status = stop.StopMonitoringDelivery.MonitoredStopVisit.map(({MonitoredVehicleJourney, ValidUntilTime, RecordedAtTime}) => ({
       LineRef: MonitoredVehicleJourney.LineRef + '_' + MonitoredVehicleJourney.DirectionRef,
-      ExpectedArrivalTime: moment(MonitoredVehicleJourney.MonitoredCall.ExpectedArrivalTime).format('LTS'),
+      ExpectedDepartureTime: Math.round(moment.duration(moment(MonitoredVehicleJourney.MonitoredCall.ExpectedDepartureTime).diff(moment(RecordedAtTime))).asMinutes()) + ' min',
       DestinationName: MonitoredVehicleJourney.DestinationName,
       OriginName: MonitoredVehicleJourney.OriginName,
       VehicleAtStop: MonitoredVehicleJourney.MonitoredCall.VehicleAtStop,

@@ -41,6 +41,10 @@ const sendRequest = (endPoint, postData) => {
       });
 
       res.on('end', () => {
+        if (endPoint.includes('subscription')) {
+          console.log(data);
+        }
+
         parser.parseString(data, (err, result) => {
             if(err) {
             return reject(err);
@@ -95,4 +99,27 @@ const productionTimetableServiceRequest = () => {
   return sendRequest('pt/service.xml', postData);
 }
 
-module.exports = {stopMonitoringRequest, productionTimetableServiceRequest, sendRequest, buildXml};
+const stopMonitoringSubscriptionRequest = stop => {
+  const now = moment().utcOffset(10).format();
+  const fiveminutes = moment(now).add(5, 'minutes').format();
+
+  const smsubrequest = {
+    RequestTimestamp: now,
+    RequestorRef: SECRET,
+    StopMonitoringSubscriptionRequest: {
+      SubscriberRef: SECRET,
+      SubscriptionIdentifier: '4',
+      InitialTerminationTime: fiveminutes,
+      StopMonitoringRequest: {
+        RequestTimestamp: now,
+        MonitoringRef: stop,
+        MaximumTextLength: '300'
+      }
+    }
+  }
+
+  const postData = buildXml('SubscriptionRequest', smsubrequest);
+  return sendRequest('sm/subscription.xml', postData);
+}
+
+module.exports = {stopMonitoringRequest, stopMonitoringSubscriptionRequest, productionTimetableServiceRequest, sendRequest, buildXml};

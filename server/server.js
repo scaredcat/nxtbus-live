@@ -4,7 +4,7 @@ const moment = require('moment');
 const csv = require('csvtojson');
 const path = require('path');
 
-const {stopMonitoringRequest, sendRequest, buildXml} = require('./nxtbusapi/request');
+const {stopMonitoringSubscriptionRequest, stopMonitoringRequest, sendRequest, buildXml} = require('./nxtbusapi/request');
 const {loadProductionTimetable, refreshProductionTimetable} = require('./nxtbusapi/productionTimetable');
 const SECRET = process.env.NXTBUS_API_KEY;
 
@@ -43,6 +43,10 @@ loadProductionTimetable().then(value => {
   console.log('Initial timetable loaded.');
   reloadTimetable(value);
 });
+
+stopMonitoringSubscriptionRequest(3401).then(value => {
+  console.log('got a subscription request response', value);
+}).catch(e => console.log('error with subscription', e));
 
 
 // Serve static files from the React app
@@ -91,5 +95,14 @@ app.get('*', (req, res) => {
 
 
 app.listen(process.env.PORT, () => {
-  console.log('App listening on port 3000');
+  console.log(`App listening on port ${process.env.PORT}`);
+});
+
+const app2 = express();
+app.post('*', (req, res) => {
+  console.log('got a reqest from some on port 11000', req.body);
+  res.send();
+});
+app.listen(11000, () => {
+  console.log('listening for nxtbus server');
 });

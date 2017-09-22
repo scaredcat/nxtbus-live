@@ -47,7 +47,7 @@ loadProductionTimetable().then(value => {
 terminateSubscriptions().then(value => console.log('terminated subscriptiosn')).catch(e => console.log('unable to terminate subscriptions'));
 
 setTimeout(() => {
-  stopMonitoringSubscriptionRequest(3401).then(value => {
+  stopMonitoringSubscriptionRequest('3401').then(value => {
     console.log('got a subscription request response', value);
   }).catch(e => console.log('error with subscription', e));
 }, 1000);

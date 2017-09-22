@@ -101,7 +101,7 @@ const productionTimetableServiceRequest = () => {
 
 const stopMonitoringSubscriptionRequest = stop => {
   const now = moment().utcOffset(10).format();
-  const fiveminutes = moment(now).add(5, 'minutes').format();
+  const fiveminutes = moment(now).add(10, 'minutes').format();
 
   const smsubrequest = {
     RequestTimestamp: now,
@@ -112,9 +112,9 @@ const stopMonitoringSubscriptionRequest = stop => {
       InitialTerminationTime: fiveminutes,
       StopMonitoringRequest: {
         RequestTimestamp: now,
-        MonitoringRef: stop,
-        MaximumTextLength: '300'
-      }
+        MonitoringRef: stop
+      },
+      ChangeBeforeUpdates: 'P0Y0M0DT0H0M30.000S'
     }
   };
 

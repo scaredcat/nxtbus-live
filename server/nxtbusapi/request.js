@@ -108,7 +108,7 @@ const stopMonitoringSubscriptionRequest = stop => {
     RequestorRef: SECRET,
     StopMonitoringSubscriptionRequest: {
       SubscriberRef: SECRET,
-      SubscriptionIdentifier: '4',
+      SubscriptionIdentifier: Math.round(Math.random() * 10).toString(),
       InitialTerminationTime: fiveminutes,
       StopMonitoringRequest: {
         RequestTimestamp: now,
@@ -116,10 +116,22 @@ const stopMonitoringSubscriptionRequest = stop => {
         MaximumTextLength: '300'
       }
     }
-  }
+  };
 
   const postData = buildXml('SubscriptionRequest', smsubrequest);
   return sendRequest('sm/subscription.xml', postData);
 }
 
-module.exports = {stopMonitoringRequest, stopMonitoringSubscriptionRequest, productionTimetableServiceRequest, sendRequest, buildXml};
+const terminateSubscriptions = () => {
+  const now = moment().utcOffset(10).format();
+  const termsubrequest = {
+    RequestTimestamp: now,
+    RequestorRef: SECRET,
+    All: null
+  };
+
+  const postData = buildXml('TerminateSubscriptionRequest', termsubrequest);
+  return sendRequest('sm/subscription.xml', postData);
+}
+
+module.exports = {terminateSubscriptions, stopMonitoringRequest, stopMonitoringSubscriptionRequest, productionTimetableServiceRequest, sendRequest, buildXml};

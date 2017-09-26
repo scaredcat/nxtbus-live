@@ -41,8 +41,8 @@ const sendRequest = (endPoint, postData) => {
       });
 
       res.on('end', () => {
-        if (endPoint.includes('subscription')) {
-          console.log(data);
+        if (endPoint.includes('polldata')) {
+          console.log('polldata success', data);
         }
 
         parser.parseString(data, (err, result) => {
@@ -118,8 +118,24 @@ const stopMonitoringSubscriptionRequest = stop => {
     }
   };
 
+  console.log('subscription ref', smsubrequest.StopMonitoringSubscriptionRequest.SubscriptionIdentifier);
+
   const postData = buildXml('SubscriptionRequest', smsubrequest);
+  console.log(postData);
   return sendRequest('sm/subscription.xml', postData);
+}
+
+const stopMonitoringPollRequest = () => {
+  const now = moment().utcOffset(10).format();
+
+  const smpollrequest = {
+    RequestTimestamp: now,
+    ConsumerRef: SECRET,
+    AllData: false
+  };
+
+  const postData = buildXml('DataSupplyRequest', smpollrequest);
+  return sendRequest('sm/polldata.xml', postData);
 }
 
 const terminateSubscriptions = () => {
@@ -134,4 +150,4 @@ const terminateSubscriptions = () => {
   return sendRequest('sm/subscription.xml', postData);
 }
 
-module.exports = {terminateSubscriptions, stopMonitoringRequest, stopMonitoringSubscriptionRequest, productionTimetableServiceRequest, sendRequest, buildXml};
+module.exports = {terminateSubscriptions, stopMonitoringRequest, stopMonitoringSubscriptionRequest, stopMonitoringPollRequest, productionTimetableServiceRequest, sendRequest, buildXml};

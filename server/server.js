@@ -4,7 +4,7 @@ const moment = require('moment');
 const csv = require('csvtojson');
 const path = require('path');
 
-const {terminateSubscriptions, stopMonitoringSubscriptionRequest, stopMonitoringRequest, sendRequest, buildXml} = require('./nxtbusapi/request');
+const {stopMonitoringPollRequest, terminateSubscriptions, stopMonitoringSubscriptionRequest, stopMonitoringRequest, sendRequest, buildXml} = require('./nxtbusapi/request');
 const {loadProductionTimetable, refreshProductionTimetable} = require('./nxtbusapi/productionTimetable');
 const SECRET = process.env.NXTBUS_API_KEY;
 
@@ -49,8 +49,17 @@ terminateSubscriptions().then(value => console.log('terminated subscriptiosn')).
 setTimeout(() => {
   stopMonitoringSubscriptionRequest('3401').then(value => {
     console.log('got a subscription request response', value);
+    pollData();
   }).catch(e => console.log('error with subscription', e));
 }, 1000);
+
+function pollData() {
+  stopMonitoringPollRequest().then(value => {
+    console.log('got a poll response', value);
+  }).catch(e => console.log('error with poll', e));
+
+  setTimeout(pollData, 4000);
+}
 
 
 // Serve static files from the React app

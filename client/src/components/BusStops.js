@@ -7,7 +7,7 @@ export default class BusStops extends Component {
 
     this.state = {
       stops: [],
-      search: ''
+      search: 'City Bus Stn Plt'
     };
   }
 
@@ -20,14 +20,13 @@ export default class BusStops extends Component {
   }
 
   displayStops() {
-    return this.state.stops.filter(value => value.some(item => item.toLowerCase().match(this.state.search.toLowerCase())))
+    return this.state.stops.filter(value => (value[0]+value[1]).toLowerCase().match(this.state.search.toLowerCase()))
       .slice(0,35).map((value, index) => {
       return (
-        <tr key={index} onClick={() => this.props.history.push(`/stop/${value[0]}`)}>
-          <td>{value[0]}</td>
-          <td>{value[1]}</td>
-          <td>{value[2]}</td>
-          <td>{value[3]}</td>
+        <tr key={index}>
+          <td onClick={() => this.props.history.push(`/stop/${value[0]}`)}>{value[0]}</td>
+          <td onClick={() => this.props.history.push(`/stop/${value[0]}`)}>{value[1]}</td>
+          <td><a href={`https://www.google.com/maps/search/?api=1&query=${value[2]},${value[3]}`} target='_blank'>{value[2]} {value[3]}</a></td>
           <td>{value[4]}</td>
         </tr>)
     });
@@ -44,12 +43,19 @@ export default class BusStops extends Component {
       return(
         <div>
           <div className="input-field">
-            <input id="bus_stop" type="text" value={this.state.search} onChange={e => this.setState({search: e.target.value})} />
+            <input
+              id="bus_stop"
+              type="text"
+              value={this.state.search}
+              onChange={e => this.setState({search: e.target.value})}
+              autoFocus
+              onFocus={e => e.target.select() }
+            />
             <label htmlFor="bus_stop">Bus Stop Search</label>
           </div>
           <table className="highlight">
             <thead>
-              <tr><th>Stop</th><th>Description</th><th>Latitude</th><th>Longitude</th><th>Street</th></tr>
+              <tr><th>Stop</th><th>Description</th><th>Location</th><th>Street</th></tr>
             </thead>
             <tbody>
               {this.displayStops()}
